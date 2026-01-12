@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRIDEX | Current Culture Marketplace</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- CSS & 3D Model Script -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container nav-wrapper">
+            <a href="{{ url_for('home') }}" class="logo">StrideX</a>
+            
+            <div class="search-bar">
+                <input type="text" placeholder="Search brands, items, colorways...">
+            </div>
+
+            <div class="nav-actions">
+                <nav class="nav-links">
+                    <a href="#">News</a>
+                    <a href="#">About</a>
+                    <a href="#">Help</a>
+                    <a href="#">Sell</a>
+                </nav>
+                
+                <div class="auth-buttons">
+                    <button onclick="openModal('login')" class="btn-auth btn-login">Login</button>
+                    <button onclick="openModal('signup')" class="btn-auth btn-signup">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sub Navigation -->
+    <div class="sub-nav">
+        <ul class="sub-nav-list">
+            <li class="sub-nav-item"><a href="#">Sneakers</a></li>
+            <li class="sub-nav-item"><a href="#">Shoes</a></li>
+            <li class="sub-nav-item"><a href="#">Apparel</a></li>
+            <li class="sub-nav-item"><a href="#">Electronics</a></li>
+            <li class="sub-nav-item"><a href="#">Trading Cards</a></li>
+            <li class="sub-nav-item"><a href="#">Collectibles</a></li>
+            <li class="sub-nav-item"><a href="#">Accessories</a></li>
+            <li class="sub-nav-item"><a href="#">NFTs</a></li>
+        </ul>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-text">
+            <h1 class="text-serif">Buy & Sell<br><span>Authentic Assets</span></h1>
+            <p>
+                Secure access to the world's most exclusive marketplace. Real-time data. 
+                Verified authenticity. Liquid assets.
+            </p>
+            <a href="#" class="hero-cta">View Market Data</a>
+        </div>
+        <div class="hero-visual">
+            <model-viewer 
+                src="{{ url_for('static', filename='sneaker.glb') }}" 
+                alt="A 3D model of a sneaker"
+                auto-rotate
+                camera-controls
+                shadow-intensity="1"
+                camera-orbit="45deg 55deg 2.5m"
+                field-of-view="30deg"
+                style="width: 100%; height: 500px; background-color: transparent;">
+                <div slot="progress-bar"></div>
+            </model-viewer>
+        </div>
+    </section>
+
+    <!-- Floating Theme Toggle -->
+    <button class="floating-toggle" id="themeSwitch" aria-label="Toggle Dark Mode">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    </button>
+
+    <!-- Ticker Tape -->
+    <div class="ticker-wrap">
+        <div class="ticker">
+            <span class="ticker-item">Nike Index <span class="ticker-delta up">▲ 2.4%</span></span>
+            <span class="ticker-item">Adidas Index <span class="ticker-delta down">▼ 0.8%</span></span>
+            <span class="ticker-item">Jordan 1 Retro <span class="ticker-delta up">▲ 5.1%</span></span>
+            <span class="ticker-item">Yeezy 350 <span class="ticker-delta up">▲ 1.2%</span></span>
+            <span class="ticker-item">New Balance 550 <span class="ticker-delta down">▼ 1.5%</span></span>
+            <span class="ticker-item">Supreme Acc. <span class="ticker-delta up">▲ 0.4%</span></span>
+        </div>
+    </div>
+
+    <!-- The Market (Product Grid) -->
+    <div class="container market-section">
+        <div class="section-header">
+            <h2 class="text-serif">Live Activity</h2>
+            <a href="#" style="font-size: 14px; text-decoration: underline; color: var(--text-muted);">View All</a>
+        </div>
+
+        <div class="grid">
+            <!-- Loop through products -->
+            {% for item in products %}
+            <a href="{{ url_for('product_detail', product_id=item.id) }}" class="card">
+                <div class="card-image">
+                    <img src="{{ url_for('static', filename='images/' + item.image) }}" alt="{{ item.name }}">
+                </div>
+                <div class="card-details">
+                    <h3>{{ item.name }}</h3>
+                    <p>{{ item.desc }}</p>
+                </div>
+                <div class="price-block">
+                    <span class="price-label">Lowest Ask</span>
+                    <span class="price-value">${{ item.price }}</span>
+                    <div class="buy-btn">Buy Now</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+<!-- Footer -->
+<footer>
+    <!-- Newsletter Section -->
+    <div class="footer-newsletter">
+        <h3>Stay in the Loop</h3>
+        <p>Subscribe to get updates on drops, price changes, and exclusive offers.</p>
+        <form class="newsletter-form">
+            <input type="email" placeholder="Enter your email address">
+            <button type="button">Subscribe</button>
+        </form>
+    </div>
+
+    <!-- Main Footer Links -->
+    <div class="container footer-main">
+        <div class="footer-grid">
+            
+            <!-- Brand Column -->
+            <div class="footer-col footer-brand">
+                <a href="#" class="logo">StrideX</a>
+                <p>The safest and fastest way to buy and sell verified sneakers, electronics, and streetwear.</p>
+                
+                <div class="social-links">
+                    <a href="#" class="social-icon" aria-label="Twitter">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="Instagram">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="Discord">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h.01M15 12h.01M19.07 4.93A17 17 0 0 0 13 3a17.17 17.17 0 0 0-5.93 1.93 2.9 2.9 0 0 0-2.13 4.22c-1.4 5.25.92 9.4 1 9.48a17.1 17.1 0 0 0 6.06 3.07 2.1 2.1 0 0 0 .86-3.4 13.9 13.9 0 0 1-2.07-1 .85.85 0 0 1 1.05-1.4 15.6 15.6 0 0 0 4.24 0 .85.85 0 0 1 1.05 1.4 13.9 13.9 0 0 1-2.07 1 2.1 2.1 0 0 0 .86 3.4 17.1 17.1 0 0 0 6.06-3.07c.08-.08 2.4-4.23 1-9.48a2.9 2.9 0 0 0-2.13-4.22z"></path></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Shop Column -->
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="#">New Releases</a></li>
+                    <li><a href="#">Sneakers</a></li>
+                    <li><a href="#">Apparel</a></li>
+                    <li><a href="#">Collectibles</a></li>
+                </ul>
+            </div>
+
+            <!-- Support Column -->
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Selling Guide</a></li>
+                    <li><a href="#">Buying Guide</a></li>
+                    <li><a href="#">Return Policy</a></li>
+                </ul>
+            </div>
+
+            <!-- Company Column -->
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Copyright -->
+    <div class="footer-bottom">
+        <div>&copy; 2025 StrideX Inc. All rights reserved.</div>
+        <div class="footer-legal">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms</a>
+            <a href="#">Sitemap</a>
+        </div>
+    </div>
+</footer>
+    <!-- LOGIN/SIGNUP MODAL -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="auth-card">
+            <button class="close-modal" onclick="closeModal()">×</button>
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+                <button class="tab-btn" id="tab-login" onclick="switchTab('login')">Log In</button>
+            </div>
+            <div id="signup-form" class="form-container">
+                <div class="form-title">Sign Up</div>
+                <div class="input-group"><input type="text" class="input-field" placeholder="First Name*"></div>
+                <div class="input-group"><input type="email" class="input-field" placeholder="Email Address*"></div>
+                <div class="input-group"><input type="password" class="input-field" placeholder="Password*"></div>
+                <button class="submit-btn">Sign Up</button>
+                <div class="divider"><span>OR</span></div>
+                <div class="social-grid">
+                    <button class="social-btn"><svg viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg></button>
+                </div>
+            </div>
+            <div id="login-form" class="form-container hidden">
+                <div class="form-title">Log In</div>
+                <div class="input-group"><input type="email" class="input-field" placeholder="Email Address*"></div>
+                <div class="input-group"><input type="password" class="input-field" placeholder="Password*"></div>
+                <button class="submit-btn">Log In</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        const modal = document.getElementById('auth-modal');
+        const signUpForm = document.getElementById('signup-form');
+        const loginForm = document.getElementById('login-form');
+        const signUpTab = document.getElementById('tab-signup');
+        const loginTab = document.getElementById('tab-login');
+        function openModal(mode) { modal.classList.add('active'); switchTab(mode); }
+        function closeModal() { modal.classList.remove('active'); }
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        function switchTab(mode) {
+            if (mode === 'signup') { signUpForm.classList.remove('hidden'); loginForm.classList.add('hidden'); signUpTab.classList.add('active'); loginTab.classList.remove('active'); } 
+            else { signUpForm.classList.add('hidden'); loginForm.classList.remove('hidden'); signUpTab.classList.remove('active'); loginTab.classList.add('active'); }
+        }
+        const themeBtn = document.getElementById('themeSwitch');
+        const htmlTag = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        htmlTag.setAttribute('data-theme', savedTheme);
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = htmlTag.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlTag.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    </script>
+</body>
+</html>

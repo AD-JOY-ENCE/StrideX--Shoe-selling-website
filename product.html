@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | {{ product.name }}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+    <!-- Link to Flask Static CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        /* Extra styles for the new modals */
+        .size-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .size-option { padding: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--text-main); font-weight: 600; cursor: pointer; transition: 0.2s; text-align: center; border-radius: 4px; }
+        .size-option:hover, .size-option.selected { border-color: var(--brand-green); color: var(--brand-green); background: rgba(29, 79, 60, 0.05); }
+        
+        .modal-body { padding: 30px; }
+        .modal-header { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text-main); display: flex; justify-content: space-between; }
+        .modal-close { cursor: pointer; color: var(--text-muted); font-size: 24px; line-height: 1; }
+        
+        .saved-text { color: var(--text-main); font-weight: 600; }
+        .sub-text { font-size: 12px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <header class="product-header">
+        <a href="{{ url_for('home') }}" class="logo">StrideX</a>
+        <a href="{{ url_for('home') }}" class="cancel-link">Cancel</a>
+    </header>
+
+    <div class="checkout-container">
+        
+        <!-- LEFT: Controls -->
+        <div class="controls-panel">
+            
+            <!-- Mode Toggle -->
+            <div class="mode-toggle">
+                <div class="toggle-bg" id="toggleBg"></div>
+                <button class="toggle-btn" id="btn-bid" onclick="setMode('bid')">Place Bid</button>
+                <button class="toggle-btn active" id="btn-buy" onclick="setMode('buy')">Buy Now</button>
+            </div>
+
+            <!-- Size Info (Clickable) -->
+            <div class="size-display" onclick="openModal('sizeModal')" style="cursor: pointer;">
+                <div>
+                    <div style="font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 4px; font-weight: 600;">U.S. Men's Size</div>
+                    <div class="size-val" id="selectedSizeDisplay">10.5</div>
+                </div>
+                <span class="edit-btn">EDIT</span>
+            </div>
+
+            <!-- Input Area -->
+            <div>
+                <div class="price-input-group">
+                    <span class="currency-symbol">$</span>
+                    <input type="number" id="priceInput" class="main-input locked" value="{{ product.price }}" readonly>
+                </div>
+                <div class="info-pill" id="inputHelper">You are purchasing at the Lowest Ask.</div>
+            </div>
+
+            <!-- Payment Modules (Clickable) -->
+            <div class="module-card" onclick="openModal('paymentModal')">
+                <div class="module-header">
+                    <span>Payment Method</span>
+                    <span class="edit-btn">EDIT</span>
+                </div>
+                <div class="module-content" id="paymentDisplay">
+                    <span class="add-icon">+</span>
+                    <span>Add New Payment Method</span>
+                </div>
+            </div>
+
+            <!-- Shipping Info (Clickable) -->
+            <div class="module-card" onclick="openModal('addressModal')">
+                <div class="module-header">
+                    <span>Shipping Address</span>
+                    <span class="edit-btn">EDIT</span>
+                </div>
+                <div class="module-content" id="addressDisplay">
+                    <span class="add-icon">+</span>
+                    <span>Add New Address</span>
+                </div>
+            </div>
+            
+            <!-- Discount Code -->
+             <div class="module-card">
+                <div class="module-header">
+                    <span>Discount Code</span>
+                    <span style="font-size:20px; color:var(--text-muted); cursor: pointer;">+</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: Summary Ledger -->
+        <div class="summary-panel">
+            <div class="ledger-card">
+                
+                <div class="product-mini">
+                    <div class="mini-img">
+                        <img src="{{ url_for('static', filename='images/' + product.image) }}" alt="{{ product.name }}">
+                   </div>
+                    <div class="mini-details">
+                        <h3>{{ product.name }}</h3>
+                        <p>{{ product.desc }}</p>
+                        <p style="font-size: 11px; margin-top: 4px; color: #888;">SKU: {{ product.sku }} | Size: <span id="summarySize">10.5</span></p>
+                    </div>
+                </div>
+
+                <div class="ledger-breakdown">
+                    <div class="cost-row">
+                        <span id="priceLabel">Purchase Price</span>
+                        <span id="displayPrice">${{ product.price }}.00</span>
+                    </div>
+                    <div class="cost-row">
+                        <span>Processing Fee (3%)</span>
+                        <span id="procFee">-</span>
+                    </div>
+                    <div class="cost-row">
+                        <span>Authentication Fee</span>
+                        <span class="green">Free</span>
+                    </div>
+                    <div class="cost-row">
+                        <span>Shipping</span>
+                        <span>$14.95</span>
+                    </div>
+                    <div class="cost-row total">
+                        <span>Total</span>
+                        <span id="totalPrice" style="color: var(--brand-green);">-</span>
+                    </div>
+                </div>
+
+                <button class="confirm-btn">Confirm Purchase</button>
+
+                <p class="disclaimer">
+                    By clicking Confirm Purchase, you agree to the Terms and Conditions. All sales are final. StrideX verifies every item.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- NEW: Floating Theme Toggle (Bottom Left) -->
+    <button class="floating-toggle" id="themeSwitch" aria-label="Toggle Dark Mode">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    </button>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- 1. SIZE MODAL -->
+    <div id="sizeModal" class="modal-overlay">
+        <div class="auth-card">
+            <div class="modal-body">
+                <div class="modal-header">Select Size (US Men's) <span class="modal-close" onclick="closeModal('sizeModal')">×</span></div>
+                <div class="size-grid">
+                    <button class="size-option" onclick="selectSize('7.0')">7.0</button>
+                    <button class="size-option" onclick="selectSize('7.5')">7.5</button>
+                    <button class="size-option" onclick="selectSize('8.0')">8.0</button>
+                    <button class="size-option" onclick="selectSize('8.5')">8.5</button>
+                    <button class="size-option" onclick="selectSize('9.0')">9.0</button>
+                    <button class="size-option" onclick="selectSize('9.5')">9.5</button>
+                    <button class="size-option" onclick="selectSize('10.0')">10.0</button>
+                    <button class="size-option" onclick="selectSize('10.5')">10.5</button>
+                    <button class="size-option" onclick="selectSize('11.0')">11.0</button>
+                    <button class="size-option" onclick="selectSize('11.5')">11.5</button>
+                    <button class="size-option" onclick="selectSize('12.0')">12.0</button>
+                    <button class="size-option" onclick="selectSize('13.0')">13.0</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. PAYMENT MODAL -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="auth-card">
+            <div class="modal-body">
+                <div class="modal-header">Add Card <span class="modal-close" onclick="closeModal('paymentModal')">×</span></div>
+                <div class="input-group"><input type="text" id="cardName" class="input-field" placeholder="Name on Card"></div>
+                <div class="input-group"><input type="text" id="cardNumber" class="input-field" placeholder="Card Number (0000 0000 0000 0000)"></div>
+                <div style="display:flex; gap:10px;">
+                    <div class="input-group"><input type="text" class="input-field" placeholder="MM/YY"></div>
+                    <div class="input-group"><input type="text" class="input-field" placeholder="CVC"></div>
+                </div>
+                <button class="submit-btn" onclick="savePayment()">Save Card</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ADDRESS MODAL -->
+    <div id="addressModal" class="modal-overlay">
+        <div class="auth-card">
+            <div class="modal-body">
+                <div class="modal-header">Shipping Address <span class="modal-close" onclick="closeModal('addressModal')">×</span></div>
+                <div class="input-group"><input type="text" class="input-field" placeholder="Full Name"></div>
+                <div class="input-group"><input type="text" id="streetAddr" class="input-field" placeholder="Street Address"></div>
+                <div class="input-group"><input type="text" class="input-field" placeholder="Apt, Suite, Unit (Optional)"></div>
+                <div style="display:flex; gap:10px;">
+                    <div class="input-group"><input type="text" id="cityAddr" class="input-field" placeholder="City"></div>
+                    <div class="input-group"><input type="text" class="input-field" placeholder="Zip Code"></div>
+                </div>
+                <button class="submit-btn" onclick="saveAddress()">Save Address</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // --- MODAL LOGIC ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // 1. Size Selection
+        function selectSize(size) {
+            document.getElementById('selectedSizeDisplay').innerText = size;
+            document.getElementById('summarySize').innerText = size;
+            closeModal('sizeModal');
+        }
+
+        // 2. Save Payment
+        function savePayment() {
+            const num = document.getElementById('cardNumber').value || "4242";
+            const last4 = num.slice(-4);
+            const display = document.getElementById('paymentDisplay');
+            
+            // Update UI to show saved card
+            display.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    <div>
+                        <div class="saved-text">Visa ending in ${last4}</div>
+                        <div class="sub-text">Exp 12/28</div>
+                    </div>
+                </div>
+            `;
+            closeModal('paymentModal');
+        }
+
+        // 3. Save Address
+        function saveAddress() {
+            const street = document.getElementById('streetAddr').value || "123 Main St";
+            const city = document.getElementById('cityAddr').value || "New York";
+            const display = document.getElementById('addressDisplay');
+
+            // Update UI to show saved address
+            display.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <div>
+                        <div class="saved-text">${street}</div>
+                        <div class="sub-text">${city}, US</div>
+                    </div>
+                </div>
+            `;
+            closeModal('addressModal');
+        }
+
+        // --- EXISTING BUY/BID & THEME LOGIC ---
+        const toggleBg = document.getElementById('toggleBg');
+        const btnBid = document.getElementById('btn-bid');
+        const btnBuy = document.getElementById('btn-buy');
+        const priceInput = document.getElementById('priceInput');
+        const inputHelper = document.getElementById('inputHelper');
+        const priceLabel = document.getElementById('priceLabel');
+        const displayPrice = document.getElementById('displayPrice');
+        const procFeeDisplay = document.getElementById('procFee');
+        const totalPriceDisplay = document.getElementById('totalPrice');
+        const lowestAsk = {{ product.price }};
+        const shipping = 14.95;
+
+        function setMode(mode) {
+            if (mode === 'buy') {
+                toggleBg.style.transform = 'translateX(100%)';
+                btnBuy.classList.add('active');
+                btnBid.classList.remove('active');
+                priceInput.value = lowestAsk;
+                priceInput.readOnly = true;
+                priceInput.classList.add('locked');
+                inputHelper.innerText = "You are purchasing at the Lowest Ask.";
+                priceLabel.innerText = "Purchase Price";
+                updateCalculations(lowestAsk);
+            } else {
+                toggleBg.style.transform = 'translateX(0%)';
+                btnBid.classList.add('active');
+                btnBuy.classList.remove('active');
+                priceInput.readOnly = false;
+                priceInput.classList.remove('locked');
+                priceInput.focus();
+                inputHelper.innerText = "Enter your bid amount. You will be charged if accepted.";
+                priceLabel.innerText = "Bid Amount";
+                updateCalculations(priceInput.value);
+            }
+        }
+        priceInput.addEventListener('input', (e) => { updateCalculations(e.target.value); });
+        function updateCalculations(amt) {
+            const val = parseFloat(amt) || 0;
+            const procFee = val * 0.03;
+            const total = val + procFee + shipping;
+            displayPrice.innerText = "$" + val.toFixed(2);
+            procFeeDisplay.innerText = "$" + procFee.toFixed(2);
+            totalPriceDisplay.innerText = "$" + total.toFixed(2);
+        }
+        setMode('buy');
+
+        const themeBtn = document.getElementById('themeSwitch');
+        const htmlTag = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        htmlTag.setAttribute('data-theme', savedTheme);
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = htmlTag.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlTag.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    </script>
+
+</body>
+</html>
